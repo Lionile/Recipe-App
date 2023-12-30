@@ -19,27 +19,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import hr.ferit.leonmaderic.recipeapp.R
 import hr.ferit.leonmaderic.recipeapp.Routes
 import hr.ferit.leonmaderic.recipeapp.data.Recipe
-import hr.ferit.leonmaderic.recipeapp.data.recipes
+import hr.ferit.leonmaderic.recipeapp.data.RecipeViewModel
 import hr.ferit.leonmaderic.recipeapp.ui.theme.*
 
 @Composable
 fun RecipeDetailsScreen(
+    viewModel: RecipeViewModel,
     navigation: NavController,
     recipeId: Int
 ) {
-    val recipe = recipes [recipeId]
     val scrollState = rememberLazyListState()
+    val recipe = viewModel.recipesData[recipeId]
     LazyColumn(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start,
@@ -48,8 +48,13 @@ fun RecipeDetailsScreen(
             .fillMaxSize()
     ) {
         item {
-            TopImageAndBar(R.drawable.strawberry_pie_1, navigation)
-            ScreenInfo(title = "Strawberry Pie", category = "Desserts")
+            TopImageAndBar(
+                coverImage = recipe.image,
+                viewModel = viewModel,
+                navigation = navigation,
+                recipe = recipe
+            )
+            ScreenInfo(recipe.title, recipe.category)
             BasicInfo(recipe)
             Description(recipe)
             Servings()
@@ -94,8 +99,10 @@ fun CircularButton(
 
 @Composable
 fun TopImageAndBar(
-    @DrawableRes coverImage: Int,
+    coverImage: String,
+    viewModel: RecipeViewModel,
     navigation: NavController,
+    recipe: Recipe
 ) {
     Box(
         modifier = Modifier
@@ -103,7 +110,7 @@ fun TopImageAndBar(
             .fillMaxWidth()
     ) {
         Image(
-            painter = painterResource(id = coverImage),
+            painter = rememberAsyncImagePainter(model = coverImage),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -123,10 +130,20 @@ fun TopImageAndBar(
                     .height(56.dp)
                     .padding(horizontal = 16.dp)
             ) {
-                CircularButton(R.drawable.ic_arrow_back){
-                    navigation.navigate(Routes.SCREEN_ALL_RECIPES)
+                CircularButton(
+                iconResource = R.drawable.ic_arrow_back,
+                color = Pink
+            ) {
+                navigation.popBackStack(Routes.SCREEN_ALL_RECIPES,
+                    false)
+            }
+                CircularButton(
+                    iconResource = R.drawable.ic_favorite,
+                    color = if(recipe.isFavorited) Pink else DarkGray
+                ) {
+                    recipe.isFavorited = !recipe.isFavorited
+                    viewModel.updateRecipe(recipe)
                 }
-                CircularButton(R.drawable.ic_favorite)
             }
             Box(
                 modifier = Modifier

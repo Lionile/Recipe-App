@@ -8,7 +8,6 @@ import androidx.compose.foundation.shape.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.*
@@ -19,10 +18,11 @@ import androidx.compose.ui.draw.*
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import hr.ferit.leonmaderic.recipeapp.R
 import hr.ferit.leonmaderic.recipeapp.Routes
 import hr.ferit.leonmaderic.recipeapp.data.Recipe
-import hr.ferit.leonmaderic.recipeapp.data.recipes
+import hr.ferit.leonmaderic.recipeapp.data.RecipeViewModel
 import hr.ferit.leonmaderic.recipeapp.ui.theme.*
 
 // Saljemo za DZ:
@@ -33,6 +33,7 @@ import hr.ferit.leonmaderic.recipeapp.ui.theme.*
 @Composable
 fun RecipesScreen(
     navigation: NavController,
+    viewModel: RecipeViewModel,
 ) {
     Column(
         verticalArrangement = Arrangement.Top,
@@ -46,7 +47,7 @@ fun RecipesScreen(
         SearchBar(iconResource = R.drawable.ic_search,
             labelText = "Search")
         RecipeCategories()
-        RecipeList(recipes = recipes, navigation = navigation)
+        RecipeList(recipes = viewModel.recipesData, navigation = navigation)
         IconButton(
             iconResource = R.drawable.ic_plus,
             text = "Add new recipe",
@@ -261,57 +262,57 @@ fun Chip(
 
 @Composable
 fun RecipeCard(
-    @DrawableRes imageResource: Int,
+    imageResource: String,
     title: String,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(16.dp),
+    Box(
         modifier = Modifier
-            .width(215.dp)
-            .height(326.dp)
             .padding(bottom = 16.dp)
-            .clickable {
-                onClick()
-            }
+            .height(326.dp)
+            .width(215.dp)
     ) {
-        Box(
+        Card(
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = LightGray),
             modifier = Modifier
-                .fillMaxSize()
+                .padding(bottom = 8.dp)
                 .clickable {
                     onClick()
                 }
         ) {
-            Image(
-                painter = painterResource(id = imageResource),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-            )
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .align(Alignment.BottomStart)
-            ) {
-                Column {
+            Box {
+                Image(
+                    painter = rememberAsyncImagePainter(model =
+                    imageResource),
+                    contentDescription = title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                )
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Bottom,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(16.dp)
+                ) {
                     Text(
                         text = title,
+                        letterSpacing = 0.32.sp,
                         style = TextStyle(
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = White,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp
                         ),
                         modifier = Modifier
-                            .padding(bottom = 8.dp)
+                            .fillMaxWidth()
                     )
                     Row {
-                        Chip(text = "30 min")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Chip(text = "4 ingredients")
+                        Chip("30 min")
+                        Spacer(Modifier.width(4.dp))
+                        Chip("4 ingredients")
                     }
-
                 }
             }
         }
@@ -322,7 +323,7 @@ fun RecipeCard(
 
 @Composable
 fun IngredientCard(
-    @DrawableRes iconResource: Int,
+    iconResource: String,
     title: String,
     subtitle: String,
 ){
@@ -335,7 +336,7 @@ fun IngredientCard(
                 .padding(8.dp)
         ){
             Image(
-                painter = painterResource(id = iconResource),
+                painter = rememberAsyncImagePainter(model = iconResource),
                 contentDescription = title,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
